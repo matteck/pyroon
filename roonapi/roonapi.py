@@ -118,6 +118,56 @@ class RoonApi:  # pylint: disable=too-many-instance-attributes
                     return zone
         return None
 
+    def is_grouped(self, output_id):
+        """
+        Whether this output is part of a group.
+
+        params:
+            output_id: the id of the output
+        returns: boolean whether this outout is grouped
+        """
+
+        try:
+            output = self.outputs[output_id]
+            zone_id = output["zone_id"]
+            is_grouped = len(self.zones[zone_id]["outputs"]) > 1
+        except KeyError:
+            is_grouped = False
+        return is_grouped
+
+    def is_group_main(self, output_id):
+        """
+        Whether this output is the the main output of a group.
+
+        params:
+            output_id: the id of the output
+        returns: boolean whether this output is the main output of a group
+        """
+
+        if not self.is_grouped(output_id):
+            return False
+
+        output = self.outputs[output_id]
+        zone_id = output["zone_id"]
+        is_group_main = self.zones[zone_id]["outputs"][0]["output_id"] == output_id
+        return is_group_main
+
+    def grouped_zone_names(self, output_id):
+        """
+        Get the names of the group players.
+
+        params:
+            output_id: the id of the output
+        returns: The names of the grouped zones. The first is the main output.
+        """
+
+        if not self.is_grouped(output_id):
+            return []
+        output = self.outputs[output_id]
+        zone_id = output["zone_id"]
+        grouped_zone_names = [o["display_name"] for o in self.zones[zone_id]["outputs"]]
+        return grouped_zone_names
+
     def get_image(self, image_key, scale="fit", width=500, height=500):
         """
         Get the image url for the specified image key.
